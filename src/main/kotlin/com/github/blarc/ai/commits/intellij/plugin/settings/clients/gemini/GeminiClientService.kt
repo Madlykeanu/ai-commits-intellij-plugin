@@ -31,12 +31,12 @@ class GeminiClientService(private val cs: CoroutineScope) : LLMClientService<Gem
     companion object {
         @JvmStatic
         fun getInstance(): GeminiClientService = service()
-        private const val API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+        private const val API_URL = "https://generativelanguage.googleapis.com/v1beta/models/"
     }
 
     override suspend fun buildChatModel(client: GeminiClientConfiguration): ChatLanguageModel {
         val token = client.token.nullize(true) ?: retrieveToken(client.id)?.toString(true)
-        return GeminiChatModel(token ?: "", client.temperature.toFloat())
+        return GeminiChatModel(token ?: "", client.modelId, client.temperature.toFloat())
     }
 
     fun saveToken(client: GeminiClientConfiguration, token: String) {
@@ -77,7 +77,7 @@ class GeminiClientService(private val cs: CoroutineScope) : LLMClientService<Gem
         }
     }
 
-    private inner class GeminiChatModel(private val apiKey: String, private val temperature: Float) : ChatLanguageModel {
+    private inner class GeminiChatModel(private val apiKey: String, private val modelId: String, private val temperature: Float) : ChatLanguageModel {
         override fun generate(messages: MutableList<dev.langchain4j.data.message.ChatMessage>): Response<AiMessage> {
             val httpClient = HttpClient.newBuilder().build()
             val requestBody = Json.encodeToString(GeminiRequest.serializer(), GeminiRequest(
@@ -87,7 +87,7 @@ class GeminiClientService(private val cs: CoroutineScope) : LLMClientService<Gem
 
             println("Sending request to Gemini API")
             val request = HttpRequest.newBuilder()
-                .uri(URI.create("$API_URL?key=$apiKey"))
+                .uri(URI.create("$API_URL$modelId:generateContent?key=$apiKey"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build()
