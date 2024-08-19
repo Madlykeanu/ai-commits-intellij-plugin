@@ -1,8 +1,10 @@
 package com.github.blarc.ai.commits.intellij.plugin.settings.clients.gemini
 
 import com.github.blarc.ai.commits.intellij.plugin.AICommitsBundle.message
+import com.github.blarc.ai.commits.intellij.plugin.emptyText
 import com.github.blarc.ai.commits.intellij.plugin.notBlank
 import com.github.blarc.ai.commits.intellij.plugin.settings.clients.LLMClientPanel
+import com.intellij.ui.components.JBPasswordField
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Panel
@@ -14,51 +16,37 @@ class GeminiClientPanel private constructor(
     val service: GeminiClientService
 ) : LLMClientPanel(clientConfiguration) {
 
-    private val projectIdTextField = JBTextField()
-    private val locationTextField = JBTextField()
+    private val apiKeyPasswordField = JBPasswordField()
 
     constructor(configuration: GeminiClientConfiguration): this(configuration, GeminiClientService.getInstance())
 
     override fun create() = panel {
         nameRow()
-        projectIdRow()
-        locationRow()
+        apiKeyRow()
         modelIdRow()
         temperatureRow()
         verifyRow()
     }
 
-    private fun Panel.projectIdRow() {
+    private fun Panel.apiKeyRow() {
         row {
-            label(message("settings.gemini.project-id"))
+            label(message("settings.llmClient.token"))
                 .widthGroup("label")
-
-            cell(projectIdTextField)
-                .bindText(clientConfiguration::projectId)
+            cell(apiKeyPasswordField)
+                .bindText(getter = { "" }, setter = {
+                    GeminiClientService.getInstance().saveToken(clientConfiguration, it)
+                })
+                .emptyText(if (clientConfiguration.tokenIsStored) message("settings.llmClient.token.stored") else message("settings.gemini.token.example"))
                 .resizableColumn()
                 .align(Align.FILL)
-                .validationOnInput { notBlank(it.text) }
-                .comment(message("settings.gemini.project-id.comment"))
-        }
-
-    }
-
-    private fun Panel.locationRow() {
-        row {
-            label(message("settings.gemini.location"))
-                .widthGroup("label")
-            cell(locationTextField)
-                .bindText(clientConfiguration::location)
-                .resizableColumn()
-                .validationOnInput { notBlank(it.text) }
-                .align(Align.FILL)
+                .comment(message("settings.gemini.token.comment"), 50)
         }
     }
 
     override fun verifyConfiguration() {
-        // Configuration passed to panel is already a copy of the original or a new configuration
         clientConfiguration.modelId = modelComboBox.item
         clientConfiguration.temperature = temperatureTextField.text
+        clientConfiguration.token = String(apiKeyPasswordField.password)
 
         service.verifyConfiguration(clientConfiguration, verifyLabel)
     }

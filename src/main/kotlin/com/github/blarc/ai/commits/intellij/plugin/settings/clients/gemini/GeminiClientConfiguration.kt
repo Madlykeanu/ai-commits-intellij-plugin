@@ -6,6 +6,7 @@ import com.github.blarc.ai.commits.intellij.plugin.settings.clients.LLMClientSha
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.ui.CommitMessage
 import com.intellij.util.xmlb.annotations.Attribute
+import com.intellij.util.xmlb.annotations.Transient
 import javax.swing.Icon
 
 class GeminiClientConfiguration : LLMClientConfiguration(
@@ -17,6 +18,10 @@ class GeminiClientConfiguration : LLMClientConfiguration(
     var projectId: String = "project-id"
     @Attribute
     var location: String = "us-central1"
+    @Attribute
+    var tokenIsStored: Boolean = false
+    @Transient
+    var token: String? = null
 
     companion object {
         const val CLIENT_NAME = "Gemini"
@@ -49,10 +54,9 @@ class GeminiClientConfiguration : LLMClientConfiguration(
         copy.temperature = temperature
         copy.projectId = projectId
         copy.location = location
+        copy.tokenIsStored = tokenIsStored
         return copy
     }
 
     override fun panel() = GeminiClientPanel(this)
-
-
 }
