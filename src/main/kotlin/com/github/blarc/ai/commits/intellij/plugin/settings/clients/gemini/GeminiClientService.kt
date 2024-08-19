@@ -31,7 +31,7 @@ class GeminiClientService(private val cs: CoroutineScope) : LLMClientService<Gem
     companion object {
         @JvmStatic
         fun getInstance(): GeminiClientService = service()
-        private const val API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+        private const val API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
     }
 
     override suspend fun buildChatModel(client: GeminiClientConfiguration): ChatLanguageModel {
